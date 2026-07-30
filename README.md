@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Inventario Code301
 
-## Getting Started
+Sistema de gestión de inventarios con dashboard, autenticación y panel administrativo. Proyecto full-stack construido con Next.js 16, Prisma 7 y PostgreSQL (Neon).
 
-First, run the development server:
+Developed & Built by Coderk.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Características
+Dashboard con métricas en tiempo real (proveedores, productos, precios y stock promedio)
+CRUD completo de Categorías, Proveedores y Productos, con relaciones entre ellos
+Autenticación con GitHub OAuth (NextAuth)
+API REST documentada, probada con Postman
+Notificaciones toast y modales de confirmación
+Interfaz responsive construida con Tailwind CSS
+Stack
+Capa	Tecnología
+Framework	Next.js 16 (App Router)
+Lenguaje	TypeScript
+Estilos	Tailwind CSS 4
+Base de datos	PostgreSQL (Neon)
+ORM	Prisma 7
+Autenticación	NextAuth v4 (GitHub OAuth)
+Requisitos previos
+Node.js 20+
+Una base de datos PostgreSQL (por ejemplo, un proyecto gratuito en Neon)
+Una OAuth App de GitHub (github.com/settings/developers)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrí http://localhost:3000 — vas a ser redirigido a /login hasta iniciar sesión con GitHub.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Modelo de datos
+Categoria 1───* Producto *───1 Proveedor
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Un producto pertenece opcionalmente a una categoría y a un proveedor. Si se elimina una categoría o proveedor, el producto queda sin esa referencia (SET NULL).
 
-## Learn More
+API
+Recurso	Endpoint	Métodos
+Categorías	/api/categorias, /api/categorias/:id	GET, POST, PUT, DELETE
+Proveedores	/api/proveedores, /api/proveedores/:id	GET, POST, PUT, DELETE
+Productos	/api/productos, /api/productos/:id	GET, POST, PUT, DELETE
+Dashboard	/api/dashboard	GET
+Estructura del proyecto
+src/
+├── app/
+│   ├── (admin)/        # Dashboard y módulos, protegidos por sesión
+│   ├── login/          # Página de inicio de sesión
+│   └── api/            # Endpoints REST + NextAuth
+├── components/         # Sidebar, Footer, ToastProvider, ConfirmModal
+└── lib/                # Cliente de Prisma y configuración de NextAuth
+prisma/
+└── schema.prisma
 
-To learn more about Next.js, take a look at the following resources:
+Roadmap
+ Tabla de usuarios propia vía Prisma Adapter (roles y permisos)
+ Login con Github
+ Filtros y paginación en las tablas
+Licencia
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Proyecto educativo desarrollado como parte del bootcamp Code 301 (Professional Fullstack).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Desarrollado y creado por Coderk
