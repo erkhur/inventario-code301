@@ -5,10 +5,42 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 
 const links = [
-  { href: "/", label: "Dashboard" },
-  { href: "/categorias", label: "Categorías" },
-  { href: "/proveedores", label: "Proveedores" },
-  { href: "/productos", label: "Productos" },
+  {
+    href: "/",
+    label: "Dashboard",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h4a1 1 0 001-1v-5a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 001 1h4a1 1 0 001-1V10" />
+      </svg>
+    ),
+  },
+  {
+    href: "/categorias",
+    label: "Categorías",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5.586a1 1 0 01.707.293l6.414 6.414a1 1 0 010 1.414l-7.586 7.586a1 1 0 01-1.414 0l-6.414-6.414A1 1 0 013 11.586V7a4 4 0 014-4z" />
+      </svg>
+    ),
+  },
+  {
+    href: "/proveedores",
+    label: "Proveedores",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9h.01M9 12h.01M9 15h.01" />
+      </svg>
+    ),
+  },
+  {
+    href: "/productos",
+    label: "Productos",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+      </svg>
+    ),
+  },
 ];
 
 export default function Sidebar() {
@@ -28,12 +60,13 @@ export default function Sidebar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 active
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-indigo-600 text-white"
+                  : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-700"
               }`}
             >
+              {link.icon}
               {link.label}
             </Link>
           );
@@ -46,7 +79,7 @@ export default function Sidebar() {
               <img
                 src={session.user.image}
                 alt={session.user.name ?? "Usuario"}
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-full ring-2 ring-indigo-100"
               />
             )}
             <span className="truncate text-sm font-medium text-gray-700">
@@ -56,7 +89,7 @@ export default function Sidebar() {
         )}
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+          className="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
         >
           Cerrar sesion
         </button>

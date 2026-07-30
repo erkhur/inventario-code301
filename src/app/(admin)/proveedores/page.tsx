@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/ToastProvider";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface Proveedor {
   id: number;
@@ -12,12 +14,16 @@ interface Proveedor {
 
 const FORM_INICIAL = { nombre: "", email: "", telefono: "" };
 
+const inputClass =
+  "mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 font-semibold placeholder-gray-400 placeholder:font-normal focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-colors";
+
 export default function ProveedoresPage() {
+  const { mostrarToast } = useToast();
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [form, setForm] = useState(FORM_INICIAL);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
-  const [mensaje, setMensaje] = useState<{ tipo: "exito" | "error"; texto: string } | null>(null);
+  const [eliminandoId, setEliminandoId] = useState<number | null>(null);
 
   async function cargarProveedores() {
     try {
@@ -25,7 +31,7 @@ export default function ProveedoresPage() {
       const data = await res.json();
       setProveedores(data);
     } catch {
-      setMensaje({ tipo: "error", texto: "Error al cargar proveedores" });
+      mostrarToast("error", "Error al cargar proveedores");
     } finally {
       setCargando(false);
     }
@@ -37,10 +43,9 @@ export default function ProveedoresPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setMensaje(null);
 
     if (!form.nombre.trim() || !form.email.trim() || !form.telefono.trim()) {
-      setMensaje({ tipo: "error", texto: "Todos los campos son obligatorios" });
+      mostrarToast("error", "Todos los campos son obligatorios");
       return;
     }
 
@@ -57,19 +62,16 @@ export default function ProveedoresPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMensaje({ tipo: "error", texto: data.error ?? "Error desconocido" });
+        mostrarToast("error", data.error ?? "Error desconocido");
         return;
       }
 
-      setMensaje({
-        tipo: "exito",
-        texto: editandoId ? "Proveedor actualizado" : "Proveedor creado",
-      });
+      mostrarToast("exito", editandoId ? "Proveedor actualizado" : "Proveedor creado");
       setForm(FORM_INICIAL);
       setEditandoId(null);
       cargarProveedores();
     } catch {
-      setMensaje({ tipo: "error", texto: "Error de conexion" });
+      mostrarToast("error", "Error de conexion");
     }
   }
 
@@ -87,22 +89,25 @@ export default function ProveedoresPage() {
     setForm(FORM_INICIAL);
   }
 
-  async function handleEliminar(id: number) {
-    if (!confirm("Seguro que queres eliminar este proveedor?")) return;
+  async function confirmarEliminar() {
+    if (eliminandoId === null) return;
 
     try {
-      const res = await fetch(`/api/proveedores/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/proveedores/${eliminandoId}`, { method: "DELETE" });
       const data = await res.json();
 
       if (!res.ok) {
-        setMensaje({ tipo: "error", texto: data.error ?? "Error al eliminar" });
+        mostrarToast("error", data.error ?? "Error al eliminar");
+        setEliminandoId(null);
         return;
       }
 
-      setMensaje({ tipo: "exito", texto: "Proveedor eliminado" });
+      mostrarToast("exito", "Proveedor eliminado");
+      setEliminandoId(null);
       cargarProveedores();
     } catch {
-      setMensaje({ tipo: "error", texto: "Error de conexion" });
+      mostrarToast("error", "Error de conexion");
+      setEliminandoId(null);
     }
   }
 
@@ -110,18 +115,6 @@ export default function ProveedoresPage() {
     <main className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
       <p className="mt-1 text-gray-500">Gestion de proveedores</p>
-
-      {mensaje && (
-        <div
-          className={`mt-4 rounded-lg px-4 py-3 text-sm ${
-            mensaje.tipo === "exito"
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
-          }`}
-        >
-          {mensaje.texto}
-        </div>
-      )}
 
       <form
         onSubmit={handleSubmit}
@@ -134,7 +127,7 @@ export default function ProveedoresPage() {
             value={form.nombre}
             onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             placeholder="Ej: TechSupply"
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
+            className={inputClass}
           />
         </div>
         <div>
@@ -144,7 +137,7 @@ export default function ProveedoresPage() {
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             placeholder="info@techsupply.com"
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
+            className={inputClass}
           />
         </div>
         <div>
@@ -154,13 +147,13 @@ export default function ProveedoresPage() {
             value={form.telefono}
             onChange={(e) => setForm({ ...form, telefono: e.target.value })}
             placeholder="555-0101"
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
+            className={inputClass}
           />
         </div>
         <div className="flex gap-3 sm:col-span-3">
           <button
             type="submit"
-            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
           >
             {editandoId ? "Actualizar" : "Crear"}
           </button>
@@ -203,7 +196,10 @@ export default function ProveedoresPage() {
               </tr>
             ) : (
               proveedores.map((proveedor) => (
-                <tr key={proveedor.id} className="border-b border-gray-100 last:border-0">
+                <tr
+                  key={proveedor.id}
+                  className="border-b border-gray-100 transition-colors last:border-0 hover:bg-gray-50"
+                >
                   <td className="px-6 py-4 text-gray-500">{proveedor.id}</td>
                   <td className="px-6 py-4 text-gray-900">{proveedor.nombre}</td>
                   <td className="px-6 py-4 text-gray-500">{proveedor.email}</td>
@@ -214,12 +210,12 @@ export default function ProveedoresPage() {
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleEditar(proveedor)}
-                      className="mr-3 text-sm font-medium text-gray-600 hover:text-gray-900"
+                      className="mr-3 text-sm font-medium text-indigo-600 hover:text-indigo-800"
                     >
                       Editar
                     </button>
                     <button
-                      onClick={() => handleEliminar(proveedor.id)}
+                      onClick={() => setEliminandoId(proveedor.id)}
                       className="text-sm font-medium text-red-600 hover:text-red-800"
                     >
                       Eliminar
@@ -231,6 +227,14 @@ export default function ProveedoresPage() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        abierto={eliminandoId !== null}
+        titulo="Eliminar proveedor"
+        mensaje="Esta accion no se puede deshacer. Si tiene productos asociados, no se va a poder eliminar."
+        onConfirmar={confirmarEliminar}
+        onCancelar={() => setEliminandoId(null)}
+      />
     </main>
   );
 }

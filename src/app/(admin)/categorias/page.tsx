@@ -1,18 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/ToastProvider";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface Categoria {
   id: number;
   nombre: string;
 }
 
+const inputClass =
+  "mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 font-semibold placeholder-gray-400 placeholder:font-normal focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-colors";
+
 export default function CategoriasPage() {
+  const { mostrarToast } = useToast();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [nombre, setNombre] = useState("");
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
-  const [mensaje, setMensaje] = useState<{ tipo: "exito" | "error"; texto: string } | null>(null);
+  const [eliminandoId, setEliminandoId] = useState<number | null>(null);
 
   async function cargarCategorias() {
     try {
@@ -20,7 +26,7 @@ export default function CategoriasPage() {
       const data = await res.json();
       setCategorias(data);
     } catch {
-      setMensaje({ tipo: "error", texto: "Error al cargar categorias" });
+      mostrarToast("error", "Error al cargar categorias");
     } finally {
       setCargando(false);
     }
@@ -32,10 +38,9 @@ export default function CategoriasPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setMensaje(null);
 
     if (!nombre.trim()) {
-      setMensaje({ tipo: "error", texto: "El nombre es obligatorio" });
+      mostrarToast("error", "El nombre es obligatorio");
       return;
     }
 
@@ -52,19 +57,16 @@ export default function CategoriasPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMensaje({ tipo: "error", texto: data.error ?? "Error desconocido" });
+        mostrarToast("error", data.error ?? "Error desconocido");
         return;
       }
 
-      setMensaje({
-        tipo: "exito",
-        texto: editandoId ? "Categoria actualizada" : "Categoria creada",
-      });
+      mostrarToast("exito", editandoId ? "Categoria actualizada" : "Categoria creada");
       setNombre("");
       setEditandoId(null);
       cargarCategorias();
     } catch {
-      setMensaje({ tipo: "error", texto: "Error de conexion" });
+      mostrarToast("error", "Error de conexion");
     }
   }
 
@@ -78,22 +80,25 @@ export default function CategoriasPage() {
     setNombre("");
   }
 
-  async function handleEliminar(id: number) {
-    if (!confirm("Seguro que queres eliminar esta categoria?")) return;
+  async function confirmarEliminar() {
+    if (eliminandoId === null) return;
 
     try {
-      const res = await fetch(`/api/categorias/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/categorias/${eliminandoId}`, { method: "DELETE" });
       const data = await res.json();
 
       if (!res.ok) {
-        setMensaje({ tipo: "error", texto: data.error ?? "Error al eliminar" });
+        mostrarToast("error", data.error ?? "Error al eliminar");
+        setEliminandoId(null);
         return;
       }
 
-      setMensaje({ tipo: "exito", texto: "Categoria eliminada" });
+      mostrarToast("exito", "Categoria eliminada");
+      setEliminandoId(null);
       cargarCategorias();
     } catch {
-      setMensaje({ tipo: "error", texto: "Error de conexion" });
+      mostrarToast("error", "Error de conexion");
+      setEliminandoId(null);
     }
   }
 
@@ -101,18 +106,6 @@ export default function CategoriasPage() {
     <main className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-2xl font-bold text-gray-900">Categorias</h1>
       <p className="mt-1 text-gray-500">Gestion de categorias de productos</p>
-
-      {mensaje && (
-        <div
-          className={`mt-4 rounded-lg px-4 py-3 text-sm ${
-            mensaje.tipo === "exito"
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
-          }`}
-        >
-          {mensaje.texto}
-        </div>
-      )}
 
       <form
         onSubmit={handleSubmit}
@@ -127,12 +120,12 @@ export default function CategoriasPage() {
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej: Electronica"
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
+            className={inputClass}
           />
         </div>
         <button
           type="submit"
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
         >
           {editandoId ? "Actualizar" : "Crear"}
         </button>
@@ -171,18 +164,21 @@ export default function CategoriasPage() {
               </tr>
             ) : (
               categorias.map((categoria) => (
-                <tr key={categoria.id} className="border-b border-gray-100 last:border-0">
+                <tr
+                  key={categoria.id}
+                  className="border-b border-gray-100 transition-colors last:border-0 hover:bg-gray-50"
+                >
                   <td className="px-6 py-4 text-gray-500">{categoria.id}</td>
                   <td className="px-6 py-4 text-gray-900">{categoria.nombre}</td>
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleEditar(categoria)}
-                      className="mr-3 text-sm font-medium text-gray-600 hover:text-gray-900"
+                      className="mr-3 text-sm font-medium text-indigo-600 hover:text-indigo-800"
                     >
                       Editar
                     </button>
                     <button
-                      onClick={() => handleEliminar(categoria.id)}
+                      onClick={() => setEliminandoId(categoria.id)}
                       className="text-sm font-medium text-red-600 hover:text-red-800"
                     >
                       Eliminar
@@ -194,6 +190,14 @@ export default function CategoriasPage() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        abierto={eliminandoId !== null}
+        titulo="Eliminar categoria"
+        mensaje="Esta accion no se puede deshacer. Seguro que queres eliminarla?"
+        onConfirmar={confirmarEliminar}
+        onCancelar={() => setEliminandoId(null)}
+      />
     </main>
   );
 }
